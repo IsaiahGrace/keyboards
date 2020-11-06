@@ -1,7 +1,7 @@
 #! /usr/bin/zsh
 
 # take the contents of this repo and merge it into the QMK fork
-rsync -av ./wheelwriter30 ~/qmk_firmware/keyboards/
+rsync -avc ./wheelwriter30 ~/qmk_firmware/keyboards/
 
 # Execute a docker build of my firmware
 # Compatable with the Wally programmer from Ergodox
