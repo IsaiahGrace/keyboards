@@ -3,26 +3,7 @@
 #include "muse.h"
 #endif
 #include "eeprom.h"
-/*
-#include "keymap_german.h"
-#include "keymap_nordic.h"
-#include "keymap_french.h"
-#include "keymap_spanish.h"
-#include "keymap_hungarian.h"
-#include "keymap_swedish.h"
-#include "keymap_br_abnt2.h"
-#include "keymap_canadian_multilingual.h"
-#include "keymap_german_ch.h"
-#include "keymap_jp.h"
-#include "keymap_bepo.h"
-#include "keymap_italian.h"
-#include "keymap_slovenian.h"
-#include "keymap_danish.h"
-#include "keymap_norwegian.h"
-#include "keymap_portuguese.h"
-#include "keymap_contributions.h"
-*/
-
+#include "raw_hid.h"
 
 #define KC_MAC_UNDO LGUI(KC_Z)
 #define KC_MAC_CUT LGUI(KC_X)
@@ -39,6 +20,10 @@
 #define NO_BSLS_ALT KC_EQUAL
 #define LSA_T(kc) MT(MOD_LSFT | MOD_LALT, kc)
 #define BP_NDSH_MAC ALGR(KC_8)
+
+#define MUSICAL_LIGHTS_OFF_COLOR 128
+#define MUSICAL_LIGHTS_OFF_TOLERANCE 100
+#define MUSICAL_LIGHTS_ON_TOLERANCE 70
 
 enum planck_keycodes {
   RGB_SLD = EZ_SAFE_RANGE,
@@ -75,7 +60,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 				KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_NO,KC_TRANSPARENT,KC_MEDIA_NEXT_TRACK,KC_AUDIO_VOL_DOWN,KC_AUDIO_VOL_UP,KC_MEDIA_PLAY_PAUSE),
 
   [_ADJUST] = LAYOUT_planck_grid(
-				 KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,
+				 KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_MS_LEFT,KC_MS_DOWN,KC_MS_UP,KC_MS_RIGHT,KC_TRANSPARENT,
 				 KC_DELETE,KC_TRANSPARENT,AU_ON,AU_OFF,AU_TOG,LALT(LCTL(KC_LEFT)),LALT(LCTL(KC_RIGHT)),KC_TRANSPARENT,RGB_VAI,RGB_VAD,KC_TRANSPARENT,RESET,
 				 KC_TRANSPARENT,KC_TRANSPARENT,MU_ON,MU_OFF,MU_TOG,LALT(LCTL(LSFT(KC_LEFT))),LALT(LCTL(LSFT(KC_RIGHT))),TO(4),RGB_HUI,RGB_HUD,KC_TRANSPARENT,KC_TRANSPARENT,
 				 WEBUSB_PAIR,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_NO,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT,KC_TRANSPARENT),
@@ -91,12 +76,27 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 extern bool g_suspend_state;
 extern rgb_config_t rgb_matrix_config;
 
+uint8_t musical_lights_tolerance;
+//uint8_t musical_lights_active;
+struct {
+  uint8_t red;
+  uint8_t green;
+  uint8_t blue;
+} musical_lights_base;
+
+
 void keyboard_post_init_user(void) {
   planck_ez_right_led_level(128);
   planck_ez_left_led_level(128);
   planck_ez_left_led_off();
   planck_ez_right_led_off();
   rgb_matrix_enable();
+  
+  musical_lights_base.red = MUSICAL_LIGHTS_OFF_COLOR;
+  musical_lights_base.green = MUSICAL_LIGHTS_OFF_COLOR;
+  musical_lights_base.blue = MUSICAL_LIGHTS_OFF_COLOR;
+  musical_lights_tolerance = MUSICAL_LIGHTS_OFF_TOLERANCE;
+  //musical_lights_active = 1;
 }
 
 const uint8_t PROGMEM ledmap[][DRIVER_LED_TOTAL][3] = {
@@ -263,3 +263,59 @@ uint32_t layer_state_set_user(uint32_t state) {
   
   return state;
 }
+
+// This function creates packets of exactly RAW_EPSIZE to be broken down and sent via raw_hid_send()
+// This is because raw_hid_send will do nothing if length != RAW_EPSIZE
+// INFO: As far as I can tell, a packet starting with 0 will not transmit that first byte
+// Somehow someway, by the time the packet gets to my linux python scripts, the first zero of the packet is missing...
+void raw_hid_send_pad(uint8_t *data, uint8_t length) {
+  // if the length is already correct, just send it quick and don't bother with the slower packet conversion
+  if (length == RAW_EPSIZE) {
+    raw_hid_send(data, RAW_EPSIZE);
+    return;
+  }
+
+  uint8_t packet[RAW_EPSIZE];
+  uint8_t n = 0;
+  
+  while (n < length) {
+    for (uint8_t i = 0; i < RAW_EPSIZE; i++) {
+      packet[i] = i < length ? data[n] : 0;
+      n++;
+    }
+    raw_hid_send(packet, RAW_EPSIZE);
+  }
+}
+
+enum hid_codes {
+  HID_PING  = 1,
+  HID_START = 2,
+  HID_COLOR = 3,
+  HID_STOP  = 4,
+};
+
+// Raw hid packets are arbitrary data from the host
+void raw_hid_receive(uint8_t *data, uint8_t length) {
+  // this code executes when a data packet is recieved from the host
+  switch (data[0]) {
+  case HID_PING:
+    // A packet starting with HID_PING will be echoed back to the host
+    raw_hid_send_pad(data,length);
+    break;
+  case HID_START:
+    break;
+  case HID_COLOR:
+    musical_lights_base.red = data[1];
+    musical_lights_base.green = data[2];
+    musical_lights_base.blue = data[3];
+    musical_lights_tolerance = MUSICAL_LIGHTS_ON_TOLERANCE;
+    break;
+  case HID_STOP:
+    musical_lights_base.red = MUSICAL_LIGHTS_OFF_COLOR;
+    musical_lights_base.green = MUSICAL_LIGHTS_OFF_COLOR;
+    musical_lights_base.blue = MUSICAL_LIGHTS_OFF_COLOR;
+    musical_lights_tolerance = MUSICAL_LIGHTS_OFF_TOLERANCE;
+    break;
+  }
+}
+

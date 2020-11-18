@@ -17,3 +17,7 @@
 #define RGB_MATRIX_STARTUP_SPD 60
 
 #define PLANCK_EZ_USER_LEDS
+
+// These should be the default values, but I'll overwrite them here because I depend on their values
+#define RAW_USAGE_PAGE 0x1122
+#define RAW_USAGE_ID 0x61
