@@ -6,7 +6,7 @@ This is (to the best of my knowledge) an IBM Lexmark Wheelwriter30 keyboard remo
 
 * Keyboard Maintainer: [Isaiah Grace](https://github.com/isaiahgrace)
 * Hardware Supported: IBM Lexmark Wheelwriter30
-* Hardware Availability: Good luck lol. I bought an entire Wheelwriter30 from my university surplus store for cheap and removed the keyboard. Maybe [govdeals.com](govdeals.com)?
+* Hardware Availability: Good luck lol. I bought an entire Wheelwriter30 from my university surplus store for cheap and removed the keyboard. Maybe [govdeals.com](https://www.govdeals.com)?
 
 Make example for this keyboard (after setting up your build environment):
 
