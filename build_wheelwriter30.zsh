@@ -4,9 +4,11 @@
 rsync -avc ./wheelwriter30 ~/qmk_firmware/keyboards/
 
 # Execute a docker build of my firmware
-# Compatable with the Wally programmer from Ergodox
 cd ~/qmk_firmware
-~/qmk_firmware/util/docker_build.sh wheelwriter:IsaiahGrace
+~/qmk_firmware/util/docker_build.sh wheelwriter30:default
 
-cp -fv ~/qmk_firmware/wheelwriter_IsaiahGrace.bin ~/keyboards/bin/wheelwriter_IsaiahGrace-`date --iso`.bin
+if [[ -e ~/qmk_firmware/wheelwriter30_default.bin ]]; then
+    cp -fv ~/qmk_firmware/wheelwriter30_default.bin ~/keyboards/bin/wheelwriter30_default-`date --iso-8601=seconds | cut -d "-" -f 1-3`.bin
+    rm ~/qmk_firmware/wheelwriter30_default.bin
+fi
 
