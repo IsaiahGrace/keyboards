@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 
-enum planck_layers {
+enum wheelwriter30_layers {
   _BASE,
   _CODE,
 };
@@ -37,3 +37,33 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 		   ____,____,       ____,          ____,                                        ____,____,____,____
 		   ),
 };
+
+// This function creates packets of exactly RAW_EPSIZE to be broken down and sent via raw_hid_send()
+// This is because raw_hid_send will do nothing if length != RAW_EPSIZE
+// INFO: As far as I can tell, a packet starting with 0 will not transmit that first byte
+// Somehow someway, by the time the packet gets to my linux python scripts, the first zero of the packet is missing...
+void raw_hid_send_pad(uint8_t *data, uint8_t length) {
+  // if the length is already correct, just send it quick and don't bother with the slower packet conversion
+  if (length == RAW_EPSIZE) {
+    raw_hid_send(data, RAW_EPSIZE);
+    return;
+  }
+
+  uint8_t packet[RAW_EPSIZE];
+  uint8_t n = 0;
+  
+  while (n < length) {
+    for (uint8_t i = 0; i < RAW_EPSIZE; i++) {
+      packet[i] = i < length ? data[n] : 0;
+      n++;
+    }
+    raw_hid_send(packet, RAW_EPSIZE);
+  }
+}
+
+
+// Raw hid packets are arbitrary data from the host
+void raw_hid_receive(uint8_t *data, uint8_t length) {
+  // this code executes when a data packet is recieved from the host
+  raw_hid_send_pad(data,length);
+}
