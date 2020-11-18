@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "raw_hid.h"
+
 enum wheelwriter30_layers {
   _BASE,
   _CODE,
@@ -10,6 +12,7 @@ enum wheelwriter30_layers {
 #define CODE MO(_CODE)
 #define ___ KC_NO
 #define ____ KC_TRANSPARENT
+
 
 /* This is what is printed on each keycap:
 
@@ -37,6 +40,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 		   ____,____,       ____,          ____,                                        ____,____,____,____
 		   ),
 };
+
+
+// TODO: The fact that I have to define this here is extreemly sus. I should remove it as soon as I understand why
+#ifndef RAW_EPSIZE
+#define RAW_EPSIZE 32
+#endif
+
 
 // This function creates packets of exactly RAW_EPSIZE to be broken down and sent via raw_hid_send()
 // This is because raw_hid_send will do nothing if length != RAW_EPSIZE

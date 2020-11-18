@@ -28,10 +28,11 @@
 #define MATRIX_COLS 14
 
 /* Key matrix pins */
-#define MATRIX_ROW_PINS { } // TODO: Figure out the pinouts!
-#define MATRIX_COL_PINS { }
+#define MATRIX_ROW_PINS { B8, B9, B1, B2, B3, B4, A0, A1}
+#define MATRIX_COL_PINS { A2, B0, A7, A8, A13, A14, B12, B11, B10, B15, B14, B13, A0, A1}
 #define UNUSED_PINS
 #define MATRIX_HAS_GHOST // IMPORTANT! The keyboard has no diodes
+#define DIODE_DIRECTION COL2ROW // This seems to be critical, but I don't have diodes!
 
 // I bought the Proton C and the speaker, so i'll enable this...
 #ifdef AUDIO_ENABLE
