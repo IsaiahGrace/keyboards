@@ -10,6 +10,7 @@ RGB_MATRIX_EFFECT(musical_lights)
 #ifdef RGB_MATRIX_CUSTOM_EFFECT_IMPLS
 #include <stdlib.h>
   
+
 // e.g: A more complex effect, relying on external methods and state, with
 // dedicated init and run methods
 //extern uint8_t musical_lights_active;
@@ -34,6 +35,29 @@ uint8_t PROGMEM led_grid[][3] = {
   {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},    {0,0,0},    {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}
 };
 
+#ifdef PIXEL_PACKET
+// This will hopefully allow the linker to get this function from keymap.c
+extern void raw_hid_send_pad(uint8_t *data, uint8_t length);
+
+uint8_t pixel_packet_cache[32];
+uint8_t pixel_packet_count = 0;
+uint8_t pixel_packet_delay = 0;
+
+static void send_pixel_color(uint8_t *pixel) {
+  if (pixel_packet_delay++ % 10)
+    return;
+  
+  if (pixel_packet_count >= 30) {
+    raw_hid_send_pad(pixel_packet_cache,32);
+    pixel_packet_count = 0;
+  }
+  
+  for (uint8_t i = 0; i < 3; i++) {
+    pixel_packet_cache[pixel_packet_count+i] = pixel[i];
+    pixel_packet_count++;
+  }
+}
+#endif
 
 static void musical_lights_init(effect_params_t* params) {
   RGB_MATRIX_USE_LIMITS(led_min, led_max); // what does this do?
@@ -51,7 +75,12 @@ static void musical_lights_init(effect_params_t* params) {
     
     random >>= 3;
   }
-  //musical_lights_active = 1;
+  
+  #ifdef PIXEL_PACKET
+  // Just to be sure, we'll zero these out.
+  pixel_packet_count = 0;
+  pixel_packet_delay = 0;
+  #endif
 }
 
 static bool musical_lights_run(effect_params_t* params) {
@@ -141,6 +170,12 @@ static bool musical_lights_run(effect_params_t* params) {
     led_grid[i][2] = pixel[2];
   }
 
+  #ifdef PIXEL_PACKET
+  // Transmit one LED's data back to the host computer, for analysis
+  // I've chosen the Q key. Index 1
+  send_pixel_color(led_grid[1]);
+  #endif
+  
  end:
   return led_max < DRIVER_LED_TOTAL; // Why? what does this do?
 }
@@ -149,5 +184,6 @@ static bool musical_lights(effect_params_t* params) {
   if (params->init) musical_lights_init(params);
   return musical_lights_run(params);
 }
+
 
 #endif // RGB_MATRIX_CUSTOM_EFFECT_IMPLS
