@@ -35,30 +35,6 @@ uint8_t PROGMEM led_grid[][3] = {
   {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0},    {0,0,0},    {0,0,0},{0,0,0},{0,0,0},{0,0,0},{0,0,0}
 };
 
-#ifdef PIXEL_PACKET
-// This will hopefully allow the linker to get this function from keymap.c
-extern void raw_hid_send_pad(uint8_t *data, uint8_t length);
-
-uint8_t pixel_packet_cache[32];
-uint8_t pixel_packet_count = 0;
-uint8_t pixel_packet_delay = 0;
-
-static void send_pixel_color(uint8_t *pixel) {
-  if (pixel_packet_delay++ % 10)
-    return;
-  
-  if (pixel_packet_count >= 30) {
-    raw_hid_send_pad(pixel_packet_cache,32);
-    pixel_packet_count = 0;
-  }
-  
-  for (uint8_t i = 0; i < 3; i++) {
-    pixel_packet_cache[pixel_packet_count+i] = pixel[i];
-    pixel_packet_count++;
-  }
-}
-#endif
-
 static void musical_lights_init(effect_params_t* params) {
   RGB_MATRIX_USE_LIMITS(led_min, led_max); // what does this do?
   // This code is run when this LED program is selected...
@@ -75,12 +51,6 @@ static void musical_lights_init(effect_params_t* params) {
     
     random >>= 3;
   }
-  
-  #ifdef PIXEL_PACKET
-  // Just to be sure, we'll zero these out.
-  pixel_packet_count = 0;
-  pixel_packet_delay = 0;
-  #endif
 }
 
 static bool musical_lights_run(effect_params_t* params) {
@@ -159,22 +129,16 @@ static bool musical_lights_run(effect_params_t* params) {
 
     // Actually set the colors...
     // This should make a pretty boarder, hopefully
-    if (i > 35 || (i % 12 == 0) || (i % 12 == 11))
-      rgb_matrix_set_color(i,pixel[1],pixel[2],pixel[0]);
+    if (i > 35 ) //|| (i % 12 == 0) || (i % 12 == 11))
+      rgb_matrix_set_color(i, pixel[1], pixel[2], pixel[0]);
     else
-      rgb_matrix_set_color(i,pixel[0], pixel[1], pixel[2]);
+      rgb_matrix_set_color(i, pixel[0], pixel[1], pixel[2]);
     
     // Save the colors to the array, so we can mutate them again!
     led_grid[i][0] = pixel[0];
     led_grid[i][1] = pixel[1];
     led_grid[i][2] = pixel[2];
   }
-
-  #ifdef PIXEL_PACKET
-  // Transmit one LED's data back to the host computer, for analysis
-  // I've chosen the Q key. Index 1
-  send_pixel_color(led_grid[1]);
-  #endif
   
  end:
   return led_max < DRIVER_LED_TOTAL; // Why? what does this do?
