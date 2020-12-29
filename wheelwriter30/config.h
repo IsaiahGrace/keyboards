@@ -28,7 +28,9 @@
 #define MATRIX_COLS 14
 
 /* Key matrix pins */
-#define MATRIX_ROW_PINS { B12, B14, B13, A5, A6, A7, A8, A15 }
+//                  ROWS: 0    1    2    3   4   5   6   7
+#define MATRIX_ROW_PINS { B12, A14, A13, B0, A6, A7, A8, A15 }
+//                  COLS: 0   1   2   3   4    5    6   7   8   9   10   11   12   13
 #define MATRIX_COL_PINS { B4, B3, B2, B1, B11, B10, A2, A1, A0, B8, B13, B14, B15, B9 }
 #define UNUSED_PINS
 #define MATRIX_HAS_GHOST // IMPORTANT! The keyboard has no diodes
