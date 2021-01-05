@@ -1,7 +1,10 @@
 #pragma once
 
 #ifdef AUDIO_ENABLE
-#define STARTUP_SONG SONG(PLANCK_SOUND)
+// Author: JESSE GRACE
+#define JESSE_JINGLE H__NOTE(_C6), H__NOTE(_C5), H__NOTE(_E5), H__NOTE(_G5), H__NOTE(_G6), H__NOTE(_G4), H__NOTE(_B4), H__NOTE(_D5), W__NOTE(_C6)
+
+#define STARTUP_SONG SONG(JESSE_JINGLE)
 #endif
 
 #define MIDI_BASIC
