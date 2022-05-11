@@ -27,14 +27,6 @@ copy_binary() {
         exit 1
     fi
 
-    files=$(ls ../qmk_firmware | grep -E "$1.*\.(bin|hex)")
-
-    if [[ -z "$files" ]]; then
-        echo "Couldn't find compiled .bin or .hex"
-        echo "Looked for: ../qmk_firmware/$1*.(bin|hex)"
-        return
-    fi
-
     echo
     echo "Copying $1 binaries to bin/"
 
@@ -42,9 +34,17 @@ copy_binary() {
     tmp1=$(mktemp -d)
     tmp2=$(mktemp -d)
 
-    for file in $files; do
+    bin_found=1
+
+    ls ../qmk_firmware | grep -E "$1.*\.(bin|hex)" | while read file; do
+        bin_found=0
         cp ../qmk_firmware/$file $tmp1/
     done
+
+    if [[ ! $bin_found ]]; then
+        echo "Couldn't find compiled .bin or .hex"
+        echo "Looked for: ../qmk_firmware/$1*.(bin|hex)"
+    fi
 
     for file in $tmp1/*; do
         build_time=$(date --iso-8601=seconds | cut -d "-" -f 1-3)
@@ -72,8 +72,6 @@ augio() {
 
 corne() {
     echo "Compiling corne (crkbd) firmware"
-    echo "Not supported yet"
-    return 1
     sync_sources crkbd
 
     pushd ../qmk_firmware
@@ -129,7 +127,7 @@ fi
 if (( $# == 0 )); then
     echo "Specify one or more of:"
     echo "augio"
-    echo "corne"
+    echo "corne/crkbd"
     echo "planck"
     echo "wheelwriter30"
     echo "clean"
@@ -142,11 +140,11 @@ popd
 
 while (( $# > 0 )); do
     case $1 in
-        augio) augio;;
-        corne) corne;;
-        planck) planck;;
+        augio)         augio;;
+        corne|crkbd)   corne;;
+        planck)        planck;;
         wheelwriter30) wheelwriter30;;
-        clean) clean;;
+        clean)         clean;;
         *) echo "Ignoring unknown keyboard: $1"
     esac
     shift 1
