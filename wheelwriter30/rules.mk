@@ -16,22 +16,24 @@
 
 
 MCU = STM32F303 # Proton C
+BOOTLOADER = stm32-dfu
 
 # Build Options
 #   change yes to no to disable
 #
-BOOTMAGIC_ENABLE = no   # Virtual DIP switch configuration
-MOUSEKEY_ENABLE = no    # Mouse keys
-EXTRAKEY_ENABLE = yes   # Audio control and System control
-CONSOLE_ENABLE = no    # Console for debug
-COMMAND_ENABLE = no     # Commands for debug and configuration
-SLEEP_LED_ENABLE = no   # Breathing sleep LED during USB suspend
-NKRO_ENABLE = no       # USB Nkey Rollover - if this doesn't work, see here: https://github.com/tmk/tmk_keyboard/wiki/FAQ#nkro-doesnt-work
-BACKLIGHT_ENABLE = no   # Enable keyboard backlight functionality
+AUDIO_DRIVER = dac_additive
 AUDIO_ENABLE = yes
-USE_I2C = no
-RGBLIGHT_ENABLE = no
+BACKLIGHT_ENABLE = no   # Enable keyboard backlight functionality
+BOOTMAGIC_ENABLE = no   # Virtual DIP switch configuration
+COMMAND_ENABLE = no     # Commands for debug and configuration
+CONSOLE_ENABLE = no     # Console for debug
 ENCODER_ENABLE = no
+EXTRAKEY_ENABLE = yes   # Audio control and System control
+MOUSEKEY_ENABLE = no    # Mouse keys
+NKRO_ENABLE = no        # USB Nkey Rollover - if this doesn't work, see here: https://github.com/tmk/tmk_keyboard/wiki/FAQ#nkro-doesnt-work
 OLED_DRIVER_ENABLE = no
-UNICODE_ENABLE = yes
 RAW_ENABLE = yes
+RGBLIGHT_ENABLE = no
+SLEEP_LED_ENABLE = no   # Breathing sleep LED during USB suspend
+UNICODE_ENABLE = yes
+USE_I2C = no

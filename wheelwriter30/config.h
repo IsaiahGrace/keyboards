@@ -36,16 +36,16 @@
 #define MATRIX_HAS_GHOST // IMPORTANT! The keyboard has no diodes
 #define DIODE_DIRECTION COL2ROW // This seems to be critical, but I don't have diodes!
 
-// I bought the Proton C and the speaker, so i'll enable this...
+// I bought the Proton C and the speaker, so I'll enable this...
 #ifdef AUDIO_ENABLE
-#define STARTUP_SONG_DOOM SONG(E1M1_DOOM)
-#define STARTUP_SONG SONG( \
-    Q__NOTE(_E6), \
-    Q__NOTE(_A6), \
-    H__NOTE(_E7), \
-    Q__NOTE(_E6), \
-    Q__NOTE(_E7) \
-)
+
+#define AUDIO_PIN A5
+#define AUDIO_PIN_ALT A4
+#define AUDIO_PIN_ALT_AS_NEGATIVE
+
+// Author: JESSE GRACE
+#define JESSE_JINGLE H__NOTE(_C6), H__NOTE(_C5), H__NOTE(_E5), H__NOTE(_G5), H__NOTE(_G6), H__NOTE(_G4), H__NOTE(_B4), H__NOTE(_D5), W__NOTE(_C6)
+#define STARTUP_SONG SONG(JESSE_JINGLE)
 #endif
 
 /* OLED */
