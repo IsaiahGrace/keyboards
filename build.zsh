@@ -21,6 +21,13 @@ sync_sources() {
     echo
 }
 
+sync_all() {
+    sync_sources augio
+    sync_sources crkbd
+    sync_sources planck
+    sync_sources wheelwriter30
+}
+
 copy_binary() {
     if (( $# == 0 )); then
         echo "Error: copy_binary() called without argument"
@@ -86,7 +93,7 @@ planck() {
     sync_sources planck
 
     pushd ../qmk_firmware
-    util/docker_build.sh planck/ez/glow::IsaiahGrace
+    util/docker_build.sh planck/ez/glow:IsaiahGrace
     popd
 
     copy_binary planck
@@ -106,6 +113,26 @@ wheelwriter30() {
 clean() {
     pushd ../qmk_firmware
     util/docker_build.sh clean
+    popd
+}
+
+flash_corne() {
+    echo "Not supported yet.. TODO: Need to modify source code to create left and right hands, because they use different bootloaders..."
+}
+
+flash() {
+    echo "Flashing $1 keyboard"
+
+    sync_all
+
+    pushd ../qmk_firmware
+    case $1 in
+        augio)         util/docker_build.sh augio:IsaiahGrace:flash;;
+        corne|crkbd)   flash_corne;;
+        planck)        util/docker_build.sh planck/ez/glow:IsaiahGrace:flash;;
+        wheelwriter30) util/docker_build.sh wheelwriter30:IsaiahGrace:flash;;
+        *) echo "Skipping unknown flashing target $1"
+    esac
     popd
 }
 
@@ -131,6 +158,7 @@ if (( $# == 0 )); then
     echo "planck"
     echo "wheelwriter30"
     echo "clean"
+    echo "sync"
     exit 1;
 fi
 
@@ -145,6 +173,8 @@ while (( $# > 0 )); do
         planck)        planck;;
         wheelwriter30) wheelwriter30;;
         clean)         clean;;
+        flash)         flash $1; shift 1;;
+        sync)          sync_all;;
         *) echo "Ignoring unknown keyboard: $1"
     esac
     shift 1
